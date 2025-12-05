@@ -16,6 +16,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include QMK_KEYBOARD_H
+#include <avr/io.h>
+
+static bool    encoder_button_state = false;
+
+void keyboard_pre_init_user(void) {
+    // Enable pull-ups for the encoder pins
+    setPinInputHigh(F6);
+    setPinInputHigh(F5);
+    setPinInputHigh(F4);
+}
+
+bool encoder_update_user(uint8_t index, bool clockwise) {
+    if (clockwise) {
+        tap_code(KC_VOLU);
+    } else {
+        tap_code(KC_VOLD);
+    }
+    return false;
+}
+
+bool encoder_button_update_user(uint8_t index, bool pressed) {
+    if (pressed) {
+        tap_code16(KC_MUTE);
+    }
+    return false;
+}
+
+void matrix_scan_user(void) {
+    // Encoder push switch on F4 (active low with pull-up)
+    bool pressed = !readPin(F4);
+    if (pressed != encoder_button_state) {
+        encoder_button_state = pressed;
+        encoder_button_update_user(0, pressed);
+    }
+}
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
@@ -27,7 +62,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [0] = LAYOUT(
         KC_KP_1, KC_KP_2,   KC_KP_3,   KC_KP_4,
-        KC_KP_5, KC_KP_6,   KC_KP_7,   KC_KP_8,   KC_KP_9
+        KC_KP_5, KC_KP_6,   KC_KP_7,   KC_KP_8
     )
 };
 
